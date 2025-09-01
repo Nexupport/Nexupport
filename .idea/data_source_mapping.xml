@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourcePerFileMappings">
+    <file url="file://$PROJECT_DIR$/supabase/migrations/20250901101709_remote_schema.sql" value="6d1d5e81-70a6-4a81-8d1b-ceb87abcb890" />
+  </component>
+</project>
