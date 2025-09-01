@@ -20,7 +20,7 @@ jobs:
           version: latest
 
       - name: Start Database
-        run: supabase start
+        run: supabase db start
 
       - name: Test Database
         run: supabase test db
