@@ -24,6 +24,18 @@ jobs:
           if ! git diff --ignore-space-at-eol --exit-code --quiet src/lib/types/db.ts; then
             echo "Detected uncommited changes after type generation. See status below:"
             git diff
+          fi
+
+      - name: Install GitHub CLI
+        run: sudo apt-get install gh
+
+      - name: Suggest updated types
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          git diff src/lib/types/db.ts > diff.patch
+          if [ -s diff.patch ]; then
+            DIFF=$(awk 'BEGIN{ORS="\\n"} /^@@/{print "```suggestion"} !/^@@/{print} END{print "```"}' diff.patch)
+            gh pr comment ${{ github.event.pull_request.number }} --body "Types are out of date. Consider applying:\n$DIFF"
             exit 1
           fi
 
