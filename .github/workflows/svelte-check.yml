@@ -25,4 +25,5 @@ jobs:
       - name: Svelte Check
         uses: ghostdevv/svelte-check-action@v1
         with:
+          failOnError: 'true'
           failOnWarning: 'true'
