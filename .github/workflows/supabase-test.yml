@@ -34,11 +34,15 @@ jobs:
           if ! git diff --quiet src/lib/types/db.ts; then
             echo "Detected changes in src/lib/types/db.ts. Posting a code suggestion..."
           
-            NEW_CONTENT=$(cat src/lib/types/db.ts | sed 's/\\/\\\\/g; s/`/\\`/g')
-          
             if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+              git diff -U0 src/lib/types/db.ts | \
+              awk '/^@@/ {split($0,a," "); split(a[2],b,","); start=b[1]; print start} /^+/ && !/^+++/ {print substr($0,2)}' \
+              > tmp.diff
+          
+              NEW_CONTENT=$(cat tmp.diff | sed 's/\\/\\\\/g; s/`/\\`/g')
+          
               gh pr comment ${{ github.event.pull_request.number }} \
-              --body "The generated types are out of date. Apply this update:\n\`\`\`suggestion\n$NEW_CONTENT\n\`\`\`"
+                --body "The generated types are out of date. Apply this update:\n\`\`\`suggestion\n$NEW_CONTENT\n\`\`\`"
             fi
           
             exit 1
