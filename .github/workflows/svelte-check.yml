@@ -2,6 +2,10 @@ name: Svelte Check
 
 on: [pull_request]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   svelte-check:
     runs-on: ubuntu-latest
