@@ -24,24 +24,23 @@ jobs:
       - name: Start Database
         run: supabase db start
 
-      - name: Verify generated types match Postgres schema
+      - name: Install GitHub CLI
+        run: sudo apt-get update && sudo apt-get install -y gh
+
+      - name: Generate types and suggest changes
         run: |
           supabase gen types typescript --local > src/lib/types/db.ts
-          if ! git diff --ignore-space-at-eol --exit-code --quiet src/lib/types/db.ts; then
-            echo "Detected uncommited changes after type generation. See status below:"
-            git diff
-          fi
-
-      - name: Install GitHub CLI
-        run: sudo apt-get install gh
-
-      - name: Suggest updated types
-        if: ${{ github.event_name == 'pull_request' }}
-        run: |
-          git diff src/lib/types/db.ts > diff.patch
-          if [ -s diff.patch ]; then
-            DIFF=$(awk 'BEGIN{ORS="\\n"} /^@@/{print "```suggestion"} !/^@@/{print} END{print "```"}' diff.patch)
-            gh pr comment ${{ github.event.pull_request.number }} --body "Types are out of date. Consider applying:\n$DIFF"
+          
+          if ! git diff --quiet src/lib/types/db.ts; then
+            echo "Detected changes in src/lib/types/db.ts. Posting a code suggestion..."
+          
+            NEW_CONTENT=$(cat src/lib/types/db.ts | sed 's/\\/\\\\/g; s/`/\\`/g')
+          
+            if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+              gh pr comment ${{ github.event.pull_request.number }} \
+              --body "The generated types are out of date. Apply this update:\n\`\`\`suggestion\n$NEW_CONTENT\n\`\`\`"
+            fi
+          
             exit 1
           fi
 
