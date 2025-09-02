@@ -38,5 +38,8 @@ jobs:
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
 
+      - name: Link Project
+        run: supabase link --project-ref ${{ secrets.PROJECT_ID }} -p ${{ secrets.DATABASE_PASSWORD }}
+
       - name: Migrate Database
         run: supabase db push -p ${{ secrets.DATABASE_PASSWORD }}
