@@ -37,6 +37,8 @@ jobs:
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
+        with:
+          version: latest
 
       - name: Migrate Database
         run: supabase db push -p ${{ secrets.DATABASE_PASSWORD }}
