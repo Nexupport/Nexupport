@@ -24,39 +24,14 @@ jobs:
       - name: Start Database
         run: supabase db start
 
-      - name: Install GitHub CLI
-        run: sudo apt-get update && sudo apt-get install -y gh
-
-      - name: Generate Types
-        run: supabase gen types typescript --local > src/lib/types/db.ts
-
-      - name: Check for changes
-        id: changes
+      - name: Verify generated types match Postgres schema
         run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@users.noreply.github.com"
-          git add src/lib/db/types.ts
-          git diff --cached > diff.patch || true
-          if [ -s diff.patch ]; then
-            echo "changes=true" >> $GITHUB_OUTPUT
-            echo "::set-output name=diff::$(cat diff.patch | sed 's/%/%25/g; s/\n/%0A/g; s/\r/%0D/g')"
-          else
-            echo "changes=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Post review comment
-        if: steps.changes.outputs.changes == 'true'
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            await github.pulls.createReview({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
-              event: 'COMMENT',
-              body: `Supabase types changes detected:\n\n\`\`\`diff\n${{ steps.gitdiff.outputs.diff }}\n\`\`\``
-            })
+          supabase gen types typescript --local > src/lib/types/db.ts
+          if ! git diff --ignore-space-at-eol --exit-code --quiet src/lib/types/db.ts; then
+            echo "Detected uncommitted changes after build. See status below:"
+            git diff
+            exit 1
+          fi          
 
   test-db:
     runs-on: ubuntu-latest
