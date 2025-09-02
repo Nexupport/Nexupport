@@ -1,0 +1,56 @@
+name: Supabase Test
+
+on: pull_request
+
+permissions:
+  pull-requests: write
+
+jobs:
+  generate-types:
+    runs-on: ubuntu-latest
+
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Database
+        run: supabase db start
+
+      - name: Verify generated types match Postgres schema
+        run: |
+          supabase gen types typescript --local > src/lib/types/db.ts
+          if ! git diff --ignore-space-at-eol --exit-code --quiet src/lib/types/db.ts; then
+            echo "Detected uncommitted changes after build. See status below:"
+            git diff
+            exit 1
+          fi          
+
+  test-db:
+    runs-on: ubuntu-latest
+
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_ID: ${{ secrets.PROJECT_ID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Database
+        run: supabase db start
+
+      - name: Test Database
+        run: supabase test db
