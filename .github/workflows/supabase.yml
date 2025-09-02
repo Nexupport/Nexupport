@@ -22,7 +22,8 @@ jobs:
           version: latest
 
       - name: Deploy Functions
-        run: supabase functions deploy --project-ref $PROJECT_ID
+        run: supabase functions deploy
+
   database:
     runs-on: ubuntu-latest
 
@@ -38,4 +39,4 @@ jobs:
         uses: supabase/setup-cli@v1
 
       - name: Migrate Database
-        run: supabase db push --project-ref $PROJECT_ID -p ${{ secrets.DATABASE_PASSWORD }}
+        run: supabase db push -p ${{ secrets.DATABASE_PASSWORD }}
