@@ -1,7 +1,7 @@
 import type { Handle } from "@sveltejs/kit";
 import { createServerClient } from "@supabase/ssr";
 import { env as ENV } from "$env/dynamic/public"
-import type { Database } from "$lib/types/db.ts";
+import type { Database } from "$lib/types/db";
 
 export const handle: Handle = async ({ resolve, event }) => {
   event.locals.supabase = createServerClient<Database>(ENV.PUBLIC_SUPABASE_URL, ENV.PUBLIC_SUPABASE_ANON_KEY, {
